@@ -409,10 +409,12 @@
         max-width: 520px;
       }
 
+      /* HERO 3D — DESKTOP */
       .hero-3d {
         position: relative;
         height: 600px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
       }
@@ -1054,6 +1056,7 @@
 
       /* ============================================
    RESPONSIVE — MOBILE (768px and below)
+   FIX: Bracelet shorter, swatches sit tight underneath
    ============================================ */
       @media (max-width: 768px) {
         /* NAVIGATION */
@@ -1091,7 +1094,7 @@
           padding: 4.5rem 1.25rem;
         }
 
-        /* HERO — give bracelet way more visibility */
+        /* HERO */
         .hero {
           min-height: auto;
         }
@@ -1100,7 +1103,7 @@
           grid-template-columns: 1fr;
           padding: 6.5rem 1.25rem 2rem;
           text-align: center;
-          gap: 1.5rem;
+          gap: 1rem;
         }
 
         .hero-label {
@@ -1136,22 +1139,59 @@
           font-size: 0.75rem;
         }
 
-        /* BRACELET — bigger on mobile, properly visible */
+        /* ============================================
+           CRITICAL MOBILE FIX:
+           Bracelet is SHORTER, swatches sit RIGHT below
+           ============================================ */
         .hero-3d {
-          height: 460px;
+          height: auto !important;
           order: -1;
           width: 100%;
-          margin-bottom: 0.5rem;
+          margin: 0;
+          padding: 0;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 0 !important;
+          align-items: center;
         }
 
+        /* Bracelet viewer — SHORTER on mobile so swatches come up */
+        .hero-3d-viewer {
+          width: 100%;
+          height: 320px !important;
+          position: relative;
+          overflow: hidden;
+          margin: 0;
+          padding: 0;
+        }
+
+        /* Swatches sit TIGHT under bracelet, no margin */
         .color-swatches {
-          gap: 0.75rem;
-          margin-top: 1rem;
+          display: flex !important;
+          gap: 1.25rem;
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+          padding: 0 !important;
+          justify-content: center;
+          position: relative;
+          z-index: 5;
         }
 
         .swatch {
-          width: 36px;
-          height: 36px;
+          width: 38px;
+          height: 38px;
+        }
+
+        /* Always show swatch labels on mobile */
+        .swatch::after {
+          opacity: 0.7;
+          font-size: 0.6rem;
+          bottom: -22px;
+        }
+
+        .swatch.active::after {
+          opacity: 1;
+          color: var(--accent);
         }
 
         .scroll-indicator {
@@ -1287,7 +1327,7 @@
           display: none !important;
         }
 
-        /* REDUCE GRAIN OVERLAY ON MOBILE for performance */
+        /* REDUCE GRAIN OVERLAY ON MOBILE */
         .grain {
           opacity: 0.02;
         }
@@ -1316,7 +1356,7 @@
 
         .hero-content {
           padding: 5.5rem 1rem 2rem;
-          gap: 1.25rem;
+          gap: 0.75rem;
         }
 
         .hero-text h1 {
@@ -1327,9 +1367,19 @@
           font-size: 0.9rem;
         }
 
-        /* BRACELET — still very visible on small phones */
-        .hero-3d {
-          height: 400px;
+        /* BRACELET on small phones — even shorter */
+        .hero-3d-viewer {
+          height: 280px !important;
+        }
+
+        .color-swatches {
+          gap: 1rem;
+          margin-top: 0 !important;
+        }
+
+        .swatch {
+          width: 34px;
+          height: 34px;
         }
 
         .freeze-stat {
@@ -1386,16 +1436,6 @@
           font-size: 0.7rem;
         }
 
-        .swatch {
-          width: 32px;
-          height: 32px;
-        }
-
-        .swatch::after {
-          font-size: 0.6rem;
-          bottom: -20px;
-        }
-
         footer p {
           font-size: 0.75rem;
         }
@@ -1409,8 +1449,13 @@
           font-size: 1.6rem;
         }
 
-        .hero-3d {
-          height: 360px;
+        .hero-3d-viewer {
+          height: 250px !important;
+        }
+
+        .swatch {
+          width: 30px;
+          height: 30px;
         }
 
         .nav-logo img {
@@ -1822,7 +1867,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Fewer particles on mobile for performance
         const particleCount = window.innerWidth < 768 ? 300 : 600;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
@@ -1906,7 +1950,6 @@
         braceletRenderer.toneMapping = THREE.ACESFilmicToneMapping;
         braceletRenderer.toneMappingExposure = 1.15;
 
-        // ---------- EDITORIAL CHIAROSCURO LIGHTING ----------
         braceletScene.add(new THREE.AmbientLight(0x1f1c20, 0.45));
 
         const keyLight = new THREE.DirectionalLight(0xfff2dc, 2.4);
@@ -1927,10 +1970,6 @@
         braceletScene.add(goldFill);
 
         braceletGroup = new THREE.Group();
-
-        // ============================================
-        // CORE FORM: ASYMMETRIC TWISTED WAVE
-        // ============================================
 
         const RADIUS = 1.8;
         const PROFILE_H = 0.45;
@@ -2051,9 +2090,6 @@
         braceletMesh.name = "band";
         braceletGroup.add(braceletMesh);
 
-        // ============================================
-        // RECESSED STATUS LIGHT CHANNEL
-        // ============================================
         const statusLightPoints = [];
         for (let i = 0; i <= 400; i++) {
           const t = i / 400;
@@ -2113,9 +2149,6 @@
         statusGlow.name = "statusGlow";
         braceletGroup.add(statusGlow);
 
-        // ============================================
-        // SAPPHIRE CABOCHON
-        // ============================================
         const sapphireT = 0.25;
         const sapphireCenter = getCenterPoint(sapphireT);
         const sapphireTangent = getTangent(sapphireT);
@@ -2172,9 +2205,6 @@
         bezel.quaternion.copy(sapphire.quaternion);
         braceletGroup.add(bezel);
 
-        // ============================================
-        // ULNAR-SIDE TITANIUM CLASP
-        // ============================================
         const claspT = 0.5;
         const claspCenter = getCenterPoint(claspT);
 
@@ -2218,7 +2248,6 @@
         braceletGroup.rotation.z = -0.12;
         braceletScene.add(braceletGroup);
 
-        // Mobile-friendly camera distance — auto-adjusts
         function getCameraDistance() {
           const w = window.innerWidth;
           if (w < 360) return 8.5;
@@ -2230,7 +2259,6 @@
         braceletCamera.position.set(0, 1.4, getCameraDistance());
         braceletCamera.lookAt(0, 0, 0);
 
-        // ---------- INTERACTION ----------
         let isDragging = false;
         let prevMouse = { x: 0, y: 0 };
         let rotVel = { x: 0, y: 0 };
@@ -2474,7 +2502,6 @@
         group.rotation.x = 0.3;
         scene.add(group);
 
-        // Mobile-friendly camera
         const isMobile = window.innerWidth < 768;
         camera.position.set(0, 0, isMobile ? 9 : 7);
         camera.lookAt(0, 0, 0);
@@ -2657,7 +2684,6 @@
 
         scene.add(nodeGroup);
 
-        // Mobile-friendly camera
         const isMobile = window.innerWidth < 768;
         camera.position.set(0, 0, isMobile ? 10 : 8);
         camera.lookAt(0, 0.5, 0);
@@ -2874,7 +2900,7 @@
       }
 
       // =============================================
-      // SMOOTH SCROLL (skips download links)
+      // SMOOTH SCROLL
       // =============================================
       document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
