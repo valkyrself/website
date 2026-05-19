@@ -1,0 +1,2625 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VALKYR — Autonomous Safety Architecture</title>
+    <meta
+      name="description"
+      content="The first autonomous safety architecture. A bracelet that reads your body's fear signature and mobilizes the Legion."
+    />
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ============================================
+   CSS CUSTOM PROPERTIES
+   ============================================ */
+      :root {
+        --bg: #0b0b0f;
+        --bg-card: #15151e;
+        --text-primary: #e5e1da;
+        --accent: #c9a87c;
+        --hover: #7a4f5f;
+        --text-dim: rgba(229, 225, 218, 0.4);
+        --text-mid: rgba(229, 225, 218, 0.6);
+        --font-heading: "Cormorant Garamond", serif;
+        --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      /* ============================================
+   RESET & BASE
+   ============================================ */
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        font-weight: 400;
+        line-height: 1.6;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: var(--bg);
+      }
+
+      /* ============================================
+   SCROLLBAR
+   ============================================ */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--hover);
+        border-radius: 3px;
+      }
+
+      /* ============================================
+   CANVAS BACKGROUND
+   ============================================ */
+      #bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      /* ============================================
+   NAVIGATION
+   ============================================ */
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        padding: 1.5rem 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(0px);
+      }
+
+      .nav.scrolled {
+        padding: 1rem 3rem;
+        backdrop-filter: blur(20px);
+        background: rgba(11, 11, 15, 0.8);
+        border-bottom: 1px solid rgba(201, 168, 124, 0.1);
+      }
+
+      .nav-logo {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 300;
+        letter-spacing: 0.4em;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0rem;
+      }
+
+      .nav-logo img {
+        height: 50px;
+        width: auto;
+        /* This filter colors the purple logo into your gold accent */
+        filter: brightness(0) saturate(100%) invert(72%) sepia(28%)
+          saturate(497%) hue-rotate(354deg) brightness(91%) contrast(87%);
+        transition: filter 0.3s;
+      }
+
+      .nav-logo:hover {
+        color: var(--accent);
+      }
+
+      .nav-logo:hover img {
+        filter: brightness(0) saturate(100%) invert(35%) sepia(15%)
+          saturate(1200%) hue-rotate(295deg) brightness(85%) contrast(85%);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2.5rem;
+        list-style: none;
+      }
+
+      .nav-links a {
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--text-mid);
+        text-decoration: none;
+        transition: color 0.3s;
+        position: relative;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: var(--accent);
+        transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .nav-links a:hover {
+        color: var(--accent);
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      .nav-hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        z-index: 1001;
+      }
+
+      .nav-hamburger span {
+        width: 24px;
+        height: 1.5px;
+        background: var(--text-primary);
+        transition: all 0.3s;
+      }
+
+      .nav-hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(4px, 4px);
+      }
+      .nav-hamburger.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .nav-hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+
+      .mobile-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(11, 11, 15, 0.97);
+        backdrop-filter: blur(30px);
+        z-index: 999;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s;
+      }
+
+      .mobile-menu.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      .mobile-menu a {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 300;
+        color: var(--text-primary);
+        text-decoration: none;
+        letter-spacing: 0.1em;
+        transition: color 0.3s;
+      }
+
+      .mobile-menu a:hover {
+        color: var(--accent);
+      }
+
+      /* ============================================
+   SECTIONS - GENERAL
+   ============================================ */
+      section {
+        position: relative;
+        z-index: 1;
+      }
+
+      .section-padding {
+        padding: 8rem 3rem;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .container-narrow {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      /* ============================================
+   TYPOGRAPHY
+   ============================================ */
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-heading);
+        font-weight: 300;
+      }
+
+      h1 {
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+
+      h3 {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        line-height: 1.3;
+      }
+
+      p {
+        font-size: 1rem;
+        line-height: 1.75;
+        color: var(--text-mid);
+      }
+
+      .text-accent {
+        color: var(--accent);
+      }
+
+      .text-dim {
+        color: var(--text-dim);
+      }
+
+      /* ============================================
+   BUTTONS
+   ============================================ */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        font-family: var(--font-body);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: var(--bg);
+      }
+
+      .btn-primary:hover {
+        background: var(--hover);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 40px rgba(201, 168, 124, 0.2);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid rgba(201, 168, 124, 0.3);
+      }
+
+      .btn-secondary:hover {
+        border-color: var(--accent);
+        background: rgba(201, 168, 124, 0.08);
+        transform: translateY(-2px);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2.5rem;
+      }
+
+      /* ============================================
+   SECTION 1: HERO
+   ============================================ */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+        max-width: 1400px;
+        width: 100%;
+        padding: 6rem 3rem 3rem;
+      }
+
+      .hero-text {
+        z-index: 2;
+      }
+
+      .hero-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .hero-label::before {
+        content: "";
+        width: 40px;
+        height: 1px;
+        background: var(--accent);
+      }
+
+      .hero-text h1 {
+        margin-bottom: 1.5rem;
+      }
+
+      .hero-text p {
+        font-size: 1.05rem;
+        max-width: 520px;
+      }
+
+      .hero-3d {
+        position: relative;
+        height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .hero-3d-viewer {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      #bracelet-canvas {
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+      }
+
+      #bracelet-canvas:active {
+        cursor: grabbing;
+      }
+
+      /* Color Swatches */
+      .color-swatches {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        justify-content: center;
+      }
+
+      .swatch {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s;
+        position: relative;
+      }
+
+      .swatch::after {
+        content: attr(data-name);
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .swatch:hover::after,
+      .swatch.active::after {
+        opacity: 1;
+      }
+
+      .swatch.active {
+        border-color: var(--accent);
+        box-shadow: 0 0 20px rgba(201, 168, 124, 0.3);
+      }
+
+      .swatch-nocturne {
+        background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+      }
+      .swatch-dawn {
+        background: linear-gradient(135deg, #c9a87c, #e8d5b7);
+      }
+      .swatch-aura {
+        background: linear-gradient(135deg, #e8e2dc, #c9bfb4);
+      }
+
+      /* Scroll indicator */
+      .scroll-indicator {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        z-index: 2;
+      }
+
+      .scroll-indicator span {
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      .scroll-line {
+        width: 1px;
+        height: 40px;
+        background: linear-gradient(to bottom, var(--accent), transparent);
+        animation: scrollPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes scrollPulse {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scaleY(0.5);
+        }
+        50% {
+          opacity: 1;
+          transform: scaleY(1);
+        }
+      }
+
+      /* ============================================
+   SECTION 2: THE FREEZE
+   ============================================ */
+      .freeze {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .freeze-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+          radial-gradient(
+            ellipse at 20% 50%,
+            rgba(201, 168, 124, 0.03) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 80% 50%,
+            rgba(122, 79, 95, 0.03) 0%,
+            transparent 50%
+          );
+        z-index: 0;
+      }
+
+      .freeze-content {
+        text-align: center;
+        max-width: 700px;
+        z-index: 1;
+        position: relative;
+      }
+
+      .freeze-stat {
+        font-family: var(--font-heading);
+        font-size: clamp(5rem, 12vw, 10rem);
+        font-weight: 300;
+        line-height: 1;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        transform: translateY(40px);
+      }
+
+      .freeze-stat-label {
+        font-family: var(--font-heading);
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 300;
+        color: var(--text-primary);
+        margin-bottom: 2rem;
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      .freeze-content p {
+        font-size: 1.1rem;
+        line-height: 1.9;
+        max-width: 580px;
+        margin: 0 auto;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      /* ============================================
+   SECTION 3: THE BRIDGE
+   ============================================ */
+      .bridge {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .bridge-line {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1px;
+        height: 80px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          var(--accent),
+          transparent
+        );
+      }
+
+      .bridge h2 {
+        text-align: center;
+        max-width: 600px;
+        font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+        font-style: italic;
+        color: var(--text-primary);
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      /* ============================================
+   SECTION 4: THE ARCHITECTURE
+   ============================================ */
+      .architecture {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .architecture-header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+
+      .architecture-header h2 {
+        margin-bottom: 1.5rem;
+      }
+
+      .architecture-header p {
+        max-width: 600px;
+        margin: 0 auto;
+        font-size: 1.05rem;
+      }
+
+      .architecture-viewer {
+        position: relative;
+        height: 500px;
+        margin: 3rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #exploded-canvas {
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+      }
+
+      #exploded-canvas:active {
+        cursor: grabbing;
+      }
+
+      .architecture-layers {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+      }
+
+      .layer-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(201, 168, 124, 0.08);
+        padding: 2rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      .layer-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          transparent
+        );
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .layer-card:hover {
+        border-color: rgba(201, 168, 124, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .layer-card:hover::before {
+        opacity: 1;
+      }
+
+      .layer-number {
+        font-family: var(--font-heading);
+        font-size: 3rem;
+        font-weight: 300;
+        color: rgba(201, 168, 124, 0.15);
+        line-height: 1;
+        margin-bottom: 1rem;
+      }
+
+      .layer-card h3 {
+        font-size: 1.1rem;
+        font-weight: 400;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.02em;
+      }
+
+      .layer-card p {
+        font-size: 0.85rem;
+        line-height: 1.7;
+        color: var(--text-dim);
+      }
+
+      /* ============================================
+   SECTION 5: SHADOW PROTOCOL
+   ============================================ */
+      .shadow {
+        position: relative;
+        overflow: hidden;
+        background: var(--bg-card);
+      }
+
+      .shadow-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      .shadow-visual {
+        position: relative;
+        height: 500px;
+      }
+
+      #network-canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      .shadow-text h2 {
+        margin-bottom: 1.5rem;
+      }
+
+      .shadow-text p {
+        font-size: 1.05rem;
+        margin-bottom: 1rem;
+      }
+
+      .shadow-text p:last-of-type {
+        font-style: italic;
+        color: var(--accent);
+        font-size: 0.95rem;
+      }
+
+      /* ============================================
+   SECTION 6: THE PATH
+   ============================================ */
+      .path {
+        position: relative;
+      }
+
+      .path-header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+
+      .path-header h2 {
+        margin-bottom: 1rem;
+      }
+
+      .path-header p {
+        color: var(--text-dim);
+        font-size: 1rem;
+      }
+
+      .path-timeline {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .phase-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(201, 168, 124, 0.08);
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.4s;
+      }
+
+      .phase-card:hover {
+        border-color: rgba(201, 168, 124, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .phase-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .phase-label::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      .phase-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+      }
+
+      .phase-card ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .phase-card li {
+        font-size: 0.9rem;
+        color: var(--text-mid);
+        padding-left: 1rem;
+        position: relative;
+      }
+
+      .phase-card li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+      }
+
+      .path-cta {
+        text-align: center;
+        margin-top: 3rem;
+      }
+
+      .path-statement {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        font-weight: 300;
+        font-style: italic;
+        color: var(--text-primary);
+        margin-bottom: 2rem;
+      }
+
+      /* ============================================
+   SECTION 7: WAITLIST
+   ============================================ */
+      .waitlist {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .waitlist-content {
+        text-align: center;
+        max-width: 600px;
+      }
+
+      .waitlist-content h2 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-style: italic;
+        margin-bottom: 1rem;
+      }
+
+      .waitlist-content > p {
+        margin-bottom: 2.5rem;
+        font-size: 1rem;
+      }
+
+      .waitlist-form {
+        display: flex;
+        gap: 0;
+        max-width: 500px;
+        margin: 0 auto;
+        border: 1px solid rgba(201, 168, 124, 0.2);
+        overflow: hidden;
+        transition: border-color 0.3s;
+      }
+
+      .waitlist-form:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 40px rgba(201, 168, 124, 0.1);
+      }
+
+      .waitlist-form input {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        outline: none;
+      }
+
+      .waitlist-form input::placeholder {
+        color: var(--text-dim);
+        letter-spacing: 0.05em;
+      }
+
+      .waitlist-form button {
+        padding: 1rem 2rem;
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+      }
+
+      .waitlist-form button:hover {
+        background: var(--hover);
+        color: var(--text-primary);
+      }
+
+      .waitlist-success {
+        display: none;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--accent);
+      }
+
+      /* ============================================
+   FOOTER
+   ============================================ */
+      footer {
+        position: relative;
+        z-index: 1;
+        padding: 3rem;
+        text-align: center;
+        border-top: 1px solid rgba(201, 168, 124, 0.06);
+      }
+
+      footer p {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin-bottom: 0.5rem;
+      }
+
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+
+      footer a:hover {
+        color: var(--hover);
+      }
+
+      /* ============================================
+   ANIMATIONS
+   ============================================ */
+      .reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal-delay-1 {
+        transition-delay: 0.1s;
+      }
+      .reveal-delay-2 {
+        transition-delay: 0.2s;
+      }
+      .reveal-delay-3 {
+        transition-delay: 0.3s;
+      }
+      .reveal-delay-4 {
+        transition-delay: 0.4s;
+      }
+
+      /* Floating particles overlay */
+      .particles-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ============================================
+   RESPONSIVE
+   ============================================ */
+      @media (max-width: 1024px) {
+        .architecture-layers {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .nav {
+          padding: 1rem 1.5rem;
+        }
+
+        .nav-logo img {
+          height: 38px;
+        }
+
+        .nav-logo {
+          font-size: 1.25rem;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .nav-hamburger {
+          display: flex;
+        }
+
+        .mobile-menu {
+          display: flex;
+        }
+
+        .section-padding {
+          padding: 5rem 1.5rem;
+        }
+
+        .hero-content {
+          grid-template-columns: 1fr;
+          padding: 8rem 1.5rem 3rem;
+          text-align: center;
+        }
+
+        .hero-label {
+          justify-content: center;
+        }
+
+        .hero-text p {
+          margin: 0 auto;
+        }
+
+        .btn-group {
+          justify-content: center;
+        }
+
+        .hero-3d {
+          height: 350px;
+          order: -1;
+        }
+
+        .architecture-layers {
+          grid-template-columns: 1fr;
+        }
+
+        .shadow-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .shadow-visual {
+          height: 350px;
+        }
+
+        .path-timeline {
+          grid-template-columns: 1fr;
+        }
+
+        .waitlist-form {
+          flex-direction: column;
+        }
+
+        .waitlist-form button {
+          padding: 1rem;
+        }
+
+        .architecture-viewer {
+          height: 350px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 2rem;
+        }
+
+        .freeze-stat {
+          font-size: 5rem;
+        }
+
+        .hero-3d {
+          height: 280px;
+        }
+      }
+
+      /* ============================================
+   CURSOR (desktop only)
+   ============================================ */
+      @media (hover: hover) {
+        .custom-cursor {
+          width: 20px;
+          height: 20px;
+          border: 1px solid var(--accent);
+          border-radius: 50%;
+          position: fixed;
+          pointer-events: none;
+          z-index: 9999;
+          transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
+          mix-blend-mode: difference;
+          opacity: 0;
+        }
+
+        .custom-cursor.visible {
+          opacity: 1;
+        }
+
+        .custom-cursor.hovering {
+          transform: scale(2);
+          background: rgba(201, 168, 124, 0.1);
+        }
+      }
+
+      /* ============================================
+   GRAIN OVERLAY
+   ============================================ */
+      .grain {
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        z-index: 9998;
+        pointer-events: none;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        animation: grainShift 0.5s steps(1) infinite;
+      }
+
+      @keyframes grainShift {
+        0% {
+          transform: translate(0, 0);
+        }
+        25% {
+          transform: translate(-5%, -5%);
+        }
+        50% {
+          transform: translate(5%, 0);
+        }
+        75% {
+          transform: translate(0, 5%);
+        }
+        100% {
+          transform: translate(-5%, 5%);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Grain Overlay -->
+    <div class="grain"></div>
+
+    <!-- Custom Cursor -->
+    <div class="custom-cursor" id="cursor"></div>
+
+    <!-- Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- ============================================
+     NAVIGATION
+     ============================================ -->
+    <nav class="nav" id="nav">
+      <a href="#" class="nav-logo">
+        <img src="logo.png" alt="Valkyr Logo" />
+        <span>VALKYR</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#protocol">Protocol</a></li>
+        <li><a href="#path">The Path</a></li>
+        <li><a href="#waitlist">Waitlist</a></li>
+      </ul>
+      <div class="nav-hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#architecture" onclick="closeMobile()">Architecture</a>
+      <a href="#protocol" onclick="closeMobile()">Protocol</a>
+      <a href="#path" onclick="closeMobile()">The Path</a>
+      <a href="#waitlist" onclick="closeMobile()">Waitlist</a>
+    </div>
+
+    <!-- ============================================
+     SECTION 1: HERO
+     ============================================ -->
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="hero-label reveal">Autonomous Safety Architecture</div>
+          <h1 class="reveal reveal-delay-1">
+            Protection that moves<br /><em class="text-accent"
+              >before you do.</em
+            >
+          </h1>
+          <p class="reveal reveal-delay-2">
+            Valkyr is the first autonomous safety architecture. A bracelet that
+            reads your body's fear signature and mobilizes the Legion — without
+            a touch, without a thought, without a button.
+          </p>
+          <div class="btn-group reveal reveal-delay-3">
+            <a href="#" class="btn btn-secondary">Download Vision Memo</a>
+            <a href="#waitlist" class="btn btn-primary">Join the Waitlist</a>
+          </div>
+        </div>
+        <div class="hero-3d reveal reveal-delay-2">
+          <div class="hero-3d-viewer">
+            <canvas id="bracelet-canvas"></canvas>
+          </div>
+          <div class="color-swatches">
+            <div
+              class="swatch swatch-nocturne active"
+              data-name="Nocturne"
+              data-color="nocturne"
+              onclick="switchColor(this, 'nocturne')"
+            ></div>
+            <div
+              class="swatch swatch-dawn"
+              data-name="Dawn"
+              data-color="dawn"
+              onclick="switchColor(this, 'dawn')"
+            ></div>
+            <div
+              class="swatch swatch-aura"
+              data-name="Aura"
+              data-color="aura"
+              onclick="switchColor(this, 'aura')"
+            ></div>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-indicator">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
+    </section>
+
+    <!-- ============================================
+     SECTION 2: THE FREEZE
+     ============================================ -->
+    <section class="freeze section-padding" id="freeze">
+      <div class="freeze-bg"></div>
+      <div class="freeze-content">
+        <div class="freeze-stat reveal">70%</div>
+        <div class="freeze-stat-label reveal reveal-delay-1">freeze.</div>
+        <p class="reveal reveal-delay-2">
+          Pepper spray stays in the bag. Apps stay locked. Panic buttons require
+          hands that biology won't give you. The entire safety industry sells a
+          fantasy: that you will see it coming.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================
+     SECTION 3: THE BRIDGE
+     ============================================ -->
+    <section class="bridge section-padding" id="bridge">
+      <div class="bridge-line"></div>
+      <h2 class="reveal">
+        Valkyr was built for the moment<br /><em class="text-accent"
+          >your body betrays you.</em
+        >
+      </h2>
+    </section>
+
+    <!-- ============================================
+     SECTION 4: THE ARCHITECTURE
+     ============================================ -->
+    <section class="architecture section-padding" id="architecture">
+      <div class="container">
+        <div class="architecture-header">
+          <h2 class="reveal">
+            Carved from <em class="text-accent">within.</em>
+          </h2>
+          <p class="reveal reveal-delay-1">
+            Engineered for implant-grade titanium. Surgical ceramic. A sapphire
+            lens that reads your pulse. An acoustic chamber disguised as a
+            clasp. Beauty that disappears. Engineering that doesn't.
+          </p>
+        </div>
+
+        <div class="architecture-viewer reveal">
+          <canvas id="exploded-canvas"></canvas>
+        </div>
+
+        <div class="architecture-layers">
+          <div class="layer-card reveal">
+            <div class="layer-number">01</div>
+            <h3>Obsidian Zirconia Shell</h3>
+            <p>Matte ceramic armor. Target: sintered at 1450°C.</p>
+          </div>
+          <div class="layer-card reveal reveal-delay-1">
+            <div class="layer-number">02</div>
+            <h3>Grade-5 Titanium Core</h3>
+            <p>Implant-grade structure. Antimicrobial by nature.</p>
+          </div>
+          <div class="layer-card reveal reveal-delay-2">
+            <div class="layer-number">03</div>
+            <h3>Sapphire Lens</h3>
+            <p>4mm biometric window. Reads as jewelry inlay.</p>
+          </div>
+          <div class="layer-card reveal reveal-delay-3">
+            <div class="layer-number">04</div>
+            <h3>Helmholtz Chamber</h3>
+            <p>Acoustic deterrent. Disguised as a clasp.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+     SECTION 5: SHADOW PROTOCOL
+     ============================================ -->
+    <section class="shadow section-padding" id="protocol">
+      <div class="container">
+        <div class="shadow-grid">
+          <div class="shadow-visual reveal">
+            <canvas id="network-canvas"></canvas>
+          </div>
+          <div class="shadow-text">
+            <h2 class="reveal">
+              One threat faced protects every sister
+              <em class="text-accent">after.</em>
+            </h2>
+            <p class="reveal reveal-delay-1">
+              The Shadow Protocol extracts anonymized threat signatures and
+              converts them into permanent network intelligence. A stalker
+              pattern in Austin protects a woman in Chicago three weeks later.
+            </p>
+            <p class="reveal reveal-delay-2">
+              This is Metcalfe's Law applied to human safety.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+     SECTION 6: THE PATH
+     ============================================ -->
+    <section class="path section-padding" id="path">
+      <div class="container">
+        <div class="path-header">
+          <h2 class="reveal">
+            The map is drawn.<br /><em class="text-accent"
+              >The Legion is forming.</em
+            >
+          </h2>
+        </div>
+
+        <div class="path-timeline">
+          <div class="phase-card reveal">
+            <div class="phase-label">Phase 1</div>
+            <h3>$100K Pre-Seed</h3>
+            <ul>
+              <li>IRB study</li>
+              <li>20-unit pilot</li>
+              <li>Provisional patents</li>
+            </ul>
+          </div>
+          <div class="phase-card reveal reveal-delay-1">
+            <div class="phase-label">Phase 2</div>
+            <h3>$800K Seed</h3>
+            <ul>
+              <li>500 units</li>
+              <li>Institutional housing bundles</li>
+              <li>Network expansion</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="path-cta reveal">
+          <p class="path-statement">
+            The future of autonomous safety is inevitable.
+          </p>
+          <a href="#" class="btn btn-secondary">Download Vision Memo</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+     SECTION 7: WAITLIST
+     ============================================ -->
+    <section class="waitlist section-padding" id="waitlist">
+      <div class="waitlist-content">
+        <h2 class="reveal">
+          You shouldn't have to be brave<br /><em class="text-accent"
+            >to walk home.</em
+          >
+        </h2>
+        <p class="reveal reveal-delay-1">
+          Be the first to wear the Legion. Enter your email and we will let you
+          know when Valkyr is ready.
+        </p>
+        <form
+          class="waitlist-form reveal reveal-delay-2"
+          id="waitlistForm"
+          onsubmit="handleWaitlist(event)"
+        >
+          <input type="email" placeholder="Your email address" required />
+          <button type="submit">Notify Me</button>
+        </form>
+        <p class="waitlist-success" id="waitlistSuccess">
+          ✓ You're in. The Legion remembers.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================
+     FOOTER
+     ============================================ -->
+    <footer>
+      <p>The Shadow Protocol is in active development.</p>
+      <p><a href="mailto:valkyrself@gmail.com">valkyrself@gmail.com</a></p>
+      <p style="margin-top: 1rem; font-size: 0.7rem">
+        © 2026 Valkyr. All rights reserved.
+      </p>
+    </footer>
+
+    <!-- ============================================
+     JAVASCRIPT
+     ============================================ -->
+    <script>
+      // =============================================
+      // THREE.JS CDN
+      // =============================================
+      const threeScript = document.createElement("script");
+      threeScript.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+      threeScript.onload = initAll;
+      document.head.appendChild(threeScript);
+
+      function initAll() {
+        initBackgroundCanvas();
+        initBracelet();
+        initExplodedView();
+        initNetworkCanvas();
+        initScrollAnimations();
+        initNav();
+        initCursor();
+      }
+
+      // =============================================
+      // BACKGROUND PARTICLE FIELD
+      // =============================================
+      function initBackgroundCanvas() {
+        const canvas = document.getElementById("bg-canvas");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000,
+        );
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const particleCount = 600;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+          positions[i * 3] = (Math.random() - 0.5) * 40;
+          positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+        }
+
+        geometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positions, 3),
+        );
+
+        const material = new THREE.PointsMaterial({
+          color: 0xc9a87c,
+          size: 0.03,
+          transparent: true,
+          opacity: 0.4,
+          sizeAttenuation: true,
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        camera.position.z = 10;
+
+        let mouseX = 0,
+          mouseY = 0;
+        document.addEventListener("mousemove", (e) => {
+          mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          particles.rotation.y += 0.0003;
+          particles.rotation.x += 0.0001;
+
+          camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.02;
+          camera.position.y += (-mouseY * 0.5 - camera.position.y) * 0.02;
+          camera.lookAt(scene.position);
+
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+      }
+
+      // =============================================
+      // BRACELET 3D MODEL — VALKYR INDUSTRIAL SPEC
+      // Sharp elongated ellipse cross-section
+      // Asymmetric twisted wave w/ blade-like dorsal crest
+      // Recessed status light, sapphire cabochon, Ti clasp
+      // =============================================
+      let braceletScene, braceletCamera, braceletRenderer, braceletGroup;
+      let currentColor = "nocturne";
+
+      function initBracelet() {
+        const canvas = document.getElementById("bracelet-canvas");
+        braceletScene = new THREE.Scene();
+
+        braceletCamera = new THREE.PerspectiveCamera(
+          35,
+          canvas.clientWidth / canvas.clientHeight,
+          0.01,
+          1000,
+        );
+        braceletRenderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+        });
+        braceletRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        braceletRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        braceletRenderer.shadowMap.enabled = true;
+        braceletRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        braceletRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+        braceletRenderer.toneMappingExposure = 1.15;
+
+        // ---------- EDITORIAL CHIAROSCURO LIGHTING ----------
+        braceletScene.add(new THREE.AmbientLight(0x1f1c20, 0.45));
+
+        const keyLight = new THREE.DirectionalLight(0xfff2dc, 2.4);
+        keyLight.position.set(3, 8, 5);
+        keyLight.castShadow = true;
+        braceletScene.add(keyLight);
+
+        const rimLight = new THREE.DirectionalLight(0xc9a87c, 1.2);
+        rimLight.position.set(-5, 3, -2);
+        braceletScene.add(rimLight);
+
+        const backLight = new THREE.DirectionalLight(0x6a5a8a, 0.6);
+        backLight.position.set(0, -2, -6);
+        braceletScene.add(backLight);
+
+        const goldFill = new THREE.PointLight(0xc9a87c, 0.7, 12);
+        goldFill.position.set(2, -1, 4);
+        braceletScene.add(goldFill);
+
+        braceletGroup = new THREE.Group();
+
+        // ============================================
+        // CORE FORM: ASYMMETRIC TWISTED WAVE
+        // Profile = elongated ellipse (4.5mm tall x 3mm wide)
+        // ============================================
+
+        const RADIUS = 1.8; // bracelet radius
+        const PROFILE_H = 0.45; // 4.5mm dorsal height
+        const PROFILE_W = 0.16; // 3mm width (minimum)
+        const TWIST_DEG = 18; // 15-20° asymmetric twist
+        const TUBE_SEGMENTS = 400;
+        const RADIAL_SEGMENTS = 48;
+
+        // Build the bracelet as a swept ellipse cross-section along a wave curve
+        // We construct vertices manually for full control of the profile.
+
+        const positions = [];
+        const normals = [];
+        const indices = [];
+        const uvs = [];
+
+        // Center curve — slight asymmetric wave (not a perfect circle)
+        function getCenterPoint(t) {
+          const angle = t * Math.PI * 2;
+          // Asymmetric wave: subtle organic deviation
+          const waveY = Math.sin(angle * 1) * 0.05 + Math.sin(angle * 2) * 0.03;
+          const radiusVar = 1 + Math.sin(angle * 2) * 0.015;
+          return new THREE.Vector3(
+            Math.cos(angle) * RADIUS * radiusVar,
+            waveY,
+            Math.sin(angle) * RADIUS * radiusVar,
+          );
+        }
+
+        // Tangent for orienting the cross-section
+        function getTangent(t) {
+          const delta = 0.0001;
+          const p1 = getCenterPoint(t);
+          const p2 = getCenterPoint(t + delta);
+          return p2.sub(p1).normalize();
+        }
+
+        // Twist angle progression along the bracelet
+        function getTwist(t) {
+          const twistRad = (TWIST_DEG * Math.PI) / 180;
+          return Math.sin(t * Math.PI * 2) * twistRad;
+        }
+
+        // ELONGATED ELLIPSE cross-section (sharp on top, soft on bottom)
+        function getCrossSectionPoint(radialT, twist) {
+          const a = radialT * Math.PI * 2;
+
+          // Asymmetric ellipse: dorsal (top) is tall + sharp, ventral (bottom) is wide + soft
+          let height, width;
+
+          if (Math.cos(a) > 0) {
+            // TOP HALF — Dorsal crest, sharp and tall
+            const sharpness = Math.pow(Math.cos(a), 2);
+            height = PROFILE_H * (0.65 + sharpness * 0.35);
+            width = PROFILE_W * (0.85 + sharpness * 0.15);
+          } else {
+            // BOTTOM HALF — Ventral (skin contact), narrower and flatter
+            const flatness = Math.pow(-Math.cos(a), 1.5);
+            height = PROFILE_H * (0.5 - flatness * 0.15);
+            width = PROFILE_W * (1 - flatness * 0.3);
+          }
+
+          // Sharp peak at top
+          const y = Math.cos(a) * height;
+          const x = Math.sin(a) * width;
+
+          // Apply twist around tangent
+          const cosT = Math.cos(twist);
+          const sinT = Math.sin(twist);
+          return {
+            local: new THREE.Vector2(x * cosT - y * sinT, x * sinT + y * cosT),
+          };
+        }
+
+        // Frenet-like frame builder
+        const up = new THREE.Vector3(0, 1, 0);
+        for (let i = 0; i <= TUBE_SEGMENTS; i++) {
+          const t = i / TUBE_SEGMENTS;
+          const center = getCenterPoint(t);
+          const tangent = getTangent(t);
+          const twist = getTwist(t);
+
+          // Build local frame (binormal=outward radial, normal=up-ish)
+          const binormal = new THREE.Vector3()
+            .crossVectors(tangent, up)
+            .normalize();
+          const normalV = new THREE.Vector3()
+            .crossVectors(binormal, tangent)
+            .normalize();
+
+          for (let j = 0; j <= RADIAL_SEGMENTS; j++) {
+            const radialT = j / RADIAL_SEGMENTS;
+            const cs = getCrossSectionPoint(radialT, twist);
+
+            // Map local 2D into 3D world position
+            const vertex = center
+              .clone()
+              .add(binormal.clone().multiplyScalar(cs.local.x))
+              .add(normalV.clone().multiplyScalar(cs.local.y));
+
+            positions.push(vertex.x, vertex.y, vertex.z);
+            uvs.push(t, radialT);
+          }
+        }
+
+        // Build triangle indices
+        for (let i = 0; i < TUBE_SEGMENTS; i++) {
+          for (let j = 0; j < RADIAL_SEGMENTS; j++) {
+            const a = i * (RADIAL_SEGMENTS + 1) + j;
+            const b = (i + 1) * (RADIAL_SEGMENTS + 1) + j;
+            const c = (i + 1) * (RADIAL_SEGMENTS + 1) + (j + 1);
+            const d = i * (RADIAL_SEGMENTS + 1) + (j + 1);
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+
+        const tubeGeom = new THREE.BufferGeometry();
+        tubeGeom.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(positions, 3),
+        );
+        tubeGeom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+        tubeGeom.setIndex(indices);
+        tubeGeom.computeVertexNormals();
+
+        // ---------- CERAMIC MATERIAL (3Y-TZP Zirconia) ----------
+        const ceramicMat = new THREE.MeshStandardMaterial({
+          color: 0x14131a,
+          metalness: 0.05,
+          roughness: 0.62,
+          flatShading: false,
+        });
+
+        const braceletMesh = new THREE.Mesh(tubeGeom, ceramicMat);
+        braceletMesh.castShadow = true;
+        braceletMesh.receiveShadow = true;
+        braceletMesh.name = "band";
+        braceletGroup.add(braceletMesh);
+
+        // ============================================
+        // RECESSED STATUS LIGHT CHANNEL
+        // 0.3mm wide hairline running along dorsal crest
+        // ============================================
+        const statusLightPoints = [];
+        for (let i = 0; i <= 400; i++) {
+          const t = i / 400;
+          const center = getCenterPoint(t);
+          const twist = getTwist(t);
+
+          // Sit ON TOP of dorsal crest, slightly recessed
+          const tangent = getTangent(t);
+          const binormal = new THREE.Vector3()
+            .crossVectors(tangent, up)
+            .normalize();
+          const normalV = new THREE.Vector3()
+            .crossVectors(binormal, tangent)
+            .normalize();
+
+          // Position at top of ellipse, slightly inset (recessed)
+          const topY = PROFILE_H * 0.95;
+          const cosT = Math.cos(twist);
+          const sinT = Math.sin(twist);
+          const offsetX = -topY * sinT;
+          const offsetY = topY * cosT;
+
+          const p = center
+            .clone()
+            .add(binormal.clone().multiplyScalar(offsetX))
+            .add(normalV.clone().multiplyScalar(offsetY));
+          statusLightPoints.push(p);
+        }
+
+        const statusCurve = new THREE.CatmullRomCurve3(statusLightPoints, true);
+        const statusGeom = new THREE.TubeGeometry(
+          statusCurve,
+          400,
+          0.012,
+          6,
+          true,
+        );
+        const statusMat = new THREE.MeshBasicMaterial({
+          color: 0xffb35a, // warm amber/gold
+          transparent: true,
+          opacity: 0.92,
+        });
+        const statusLight = new THREE.Mesh(statusGeom, statusMat);
+        statusLight.name = "statusLight";
+        braceletGroup.add(statusLight);
+
+        // Status light bloom
+        const statusGlowGeom = new THREE.TubeGeometry(
+          statusCurve,
+          400,
+          0.035,
+          6,
+          true,
+        );
+        const statusGlowMat = new THREE.MeshBasicMaterial({
+          color: 0xc9a87c,
+          transparent: true,
+          opacity: 0.18,
+        });
+        const statusGlow = new THREE.Mesh(statusGlowGeom, statusGlowMat);
+        statusGlow.name = "statusGlow";
+        braceletGroup.add(statusGlow);
+
+        // ============================================
+        // SAPPHIRE CABOCHON (4mm) on inner radial wall
+        // Cradles radial artery
+        // ============================================
+        const sapphireT = 0.25; // position along bracelet
+        const sapphireCenter = getCenterPoint(sapphireT);
+        const sapphireTangent = getTangent(sapphireT);
+        const sapphireBinormal = new THREE.Vector3()
+          .crossVectors(sapphireTangent, up)
+          .normalize();
+        const sapphireNormal = new THREE.Vector3()
+          .crossVectors(sapphireBinormal, sapphireTangent)
+          .normalize();
+
+        // Inner wall = bottom of ellipse, facing inward toward center
+        const innerRadialDir = sapphireCenter
+          .clone()
+          .normalize()
+          .multiplyScalar(-1);
+
+        // Sapphire half-sphere (cabochon)
+        const sapphireGeom = new THREE.SphereGeometry(
+          0.085,
+          32,
+          32,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI / 2,
+        );
+        const sapphireMat = new THREE.MeshPhysicalMaterial({
+          color: 0xc8d6e8,
+          metalness: 0.0,
+          roughness: 0.02,
+          transmission: 0.5,
+          thickness: 0.4,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.0,
+          ior: 1.77,
+          reflectivity: 0.5,
+        });
+        const sapphire = new THREE.Mesh(sapphireGeom, sapphireMat);
+        sapphire.position
+          .copy(sapphireCenter)
+          .add(innerRadialDir.clone().multiplyScalar(0.05))
+          .add(sapphireNormal.clone().multiplyScalar(-PROFILE_H * 0.4));
+        sapphire.lookAt(0, sapphire.position.y, 0);
+        sapphire.rotateX(-Math.PI / 2);
+        sapphire.name = "sapphire";
+        braceletGroup.add(sapphire);
+
+        // Sapphire bezel (titanium ring)
+        const bezelGeom = new THREE.TorusGeometry(0.09, 0.011, 12, 32);
+        const bezelMat = new THREE.MeshStandardMaterial({
+          color: 0x4a4a52,
+          metalness: 0.98,
+          roughness: 0.18,
+        });
+        const bezel = new THREE.Mesh(bezelGeom, bezelMat);
+        bezel.position.copy(sapphire.position);
+        bezel.quaternion.copy(sapphire.quaternion);
+        braceletGroup.add(bezel);
+
+        // ============================================
+        // ULNAR-SIDE TITANIUM CLASP
+        // Precision-machined grilles (Helmholtz resonator)
+        // ============================================
+        const claspT = 0.5; // opposite from sapphire
+        const claspCenter = getCenterPoint(claspT);
+        const claspTangent = getTangent(claspT);
+
+        const claspGroup = new THREE.Group();
+
+        // Main clasp body
+        const claspBodyGeom = new THREE.BoxGeometry(0.55, 0.42, 0.32);
+        const claspBodyMat = new THREE.MeshStandardMaterial({
+          color: 0x35353d,
+          metalness: 0.96,
+          roughness: 0.22,
+        });
+        const claspBody = new THREE.Mesh(claspBodyGeom, claspBodyMat);
+        claspBody.name = "clasp";
+        claspGroup.add(claspBody);
+
+        // Acoustic grille slots
+        for (let g = 0; g < 4; g++) {
+          const grilleGeom = new THREE.BoxGeometry(0.42, 0.025, 0.02);
+          const grilleMat = new THREE.MeshBasicMaterial({
+            color: 0x0a0a0a,
+          });
+          const grille = new THREE.Mesh(grilleGeom, grilleMat);
+          grille.position.set(0, 0.12 - g * 0.07, 0.17);
+          claspGroup.add(grille);
+        }
+
+        // Subtle gold seam line on clasp
+        const seamGeom = new THREE.BoxGeometry(0.56, 0.005, 0.33);
+        const seamMat = new THREE.MeshBasicMaterial({
+          color: 0xc9a87c,
+          transparent: true,
+          opacity: 0.5,
+        });
+        const seam = new THREE.Mesh(seamGeom, seamMat);
+        seam.position.set(0, -0.18, 0);
+        claspGroup.add(seam);
+
+        // Position clasp at ulnar side
+        claspGroup.position.copy(claspCenter);
+        claspGroup.lookAt(0, claspCenter.y, 0);
+        braceletGroup.add(claspGroup);
+
+        // ============================================
+        // EDITORIAL POSE (tilted, three-quarter view)
+        // ============================================
+        braceletGroup.rotation.x = 0.42;
+        braceletGroup.rotation.z = -0.12;
+        braceletScene.add(braceletGroup);
+
+        // Camera position — pulled back, no clipping
+        braceletCamera.position.set(0, 1.4, 10.5);
+        braceletCamera.lookAt(0, 0, 0);
+
+        // ---------- INTERACTION ----------
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let rotVel = { x: 0, y: 0 };
+
+        canvas.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          prevMouse = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - prevMouse.x;
+          const dy = e.clientY - prevMouse.y;
+          rotVel.y += dx * 0.005;
+          rotVel.x += dy * 0.005;
+          prevMouse = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener("mouseup", () => (isDragging = false));
+        canvas.addEventListener("mouseleave", () => (isDragging = false));
+
+        canvas.addEventListener("touchstart", (e) => {
+          isDragging = true;
+          prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        });
+        canvas.addEventListener("touchmove", (e) => {
+          if (!isDragging) return;
+          const dx = e.touches[0].clientX - prevMouse.x;
+          const dy = e.touches[0].clientY - prevMouse.y;
+          rotVel.y += dx * 0.005;
+          rotVel.x += dy * 0.005;
+          prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        });
+        canvas.addEventListener("touchend", () => (isDragging = false));
+
+        let time = 0;
+        function animateBracelet() {
+          requestAnimationFrame(animateBracelet);
+          time += 0.01;
+
+          if (!isDragging) {
+            braceletGroup.rotation.y += 0.005;
+          }
+
+          braceletGroup.rotation.y += rotVel.y;
+          braceletGroup.rotation.x += rotVel.x;
+          rotVel.x *= 0.95;
+          rotVel.y *= 0.95;
+
+          // Status light slow breathing pulse
+          const status = braceletGroup.getObjectByName("statusLight");
+          const statusGlowMesh = braceletGroup.getObjectByName("statusGlow");
+          if (status) {
+            status.material.opacity = 0.85 + Math.sin(time * 1.4) * 0.12;
+          }
+          if (statusGlowMesh) {
+            statusGlowMesh.material.opacity =
+              0.15 + Math.sin(time * 1.4) * 0.08;
+          }
+
+          // Gentle vertical float
+          braceletGroup.position.y = Math.sin(time * 0.55) * 0.04;
+
+          braceletRenderer.render(braceletScene, braceletCamera);
+        }
+        animateBracelet();
+
+        const resizeObserver = new ResizeObserver(() => {
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          braceletCamera.aspect = w / h;
+          braceletCamera.updateProjectionMatrix();
+          braceletRenderer.setSize(w, h);
+        });
+        resizeObserver.observe(canvas.parentElement);
+      }
+
+      // ============================================
+      // COLOR SWATCH SWITCHER
+      // Matches the 3 spec colorways
+      // ============================================
+      function switchColor(el, colorName) {
+        document
+          .querySelectorAll(".swatch")
+          .forEach((s) => s.classList.remove("active"));
+        el.classList.add("active");
+        currentColor = colorName;
+
+        // Three industrial colorways from spec
+        const colorOptions = {
+          // Obsidian zirconia ceramic + Gunmetal PVD titanium
+          nocturne: {
+            ceramic: 0x14131a,
+            clasp: 0x35353d,
+            statusLight: 0xffb35a,
+          },
+          // Full champagne gold TiN coating (warm liquid metal)
+          dawn: { ceramic: 0x6e5a3d, clasp: 0xc9a87c, statusLight: 0xffd89e },
+          // Alabaster white zirconia + platinum-palladium PVD
+          aura: { ceramic: 0xd8d1c8, clasp: 0x9a8a78, statusLight: 0xf2c8a8 },
+        };
+
+        const colors = colorOptions[colorName];
+        const band = braceletGroup.getObjectByName("band");
+        const clasp = braceletGroup.getObjectByName("clasp");
+        const status = braceletGroup.getObjectByName("statusLight");
+
+        if (band) gsapColorTransition(band.material, "color", colors.ceramic);
+        if (clasp) gsapColorTransition(clasp.material, "color", colors.clasp);
+        if (status)
+          gsapColorTransition(status.material, "color", colors.statusLight);
+      }
+
+      function gsapColorTransition(material, prop, targetHex) {
+        const target = new THREE.Color(targetHex);
+        const current = material[prop].clone();
+        const steps = 30;
+        let step = 0;
+
+        function tick() {
+          step++;
+          const t = step / steps;
+          material[prop].lerpColors(current, target, easeOutCubic(t));
+          if (step < steps) requestAnimationFrame(tick);
+        }
+        tick();
+      }
+
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      // =============================================
+      // EXPLODED VIEW (Architecture)
+      // =============================================
+      function initExplodedView() {
+        const canvas = document.getElementById("exploded-canvas");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          45,
+          canvas.clientWidth / canvas.clientHeight,
+          0.1,
+          100,
+        );
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+        });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const dl = new THREE.DirectionalLight(0xc9a87c, 1.0);
+        dl.position.set(4, 4, 4);
+        scene.add(dl);
+        const dl2 = new THREE.DirectionalLight(0x7a4f5f, 0.5);
+        dl2.position.set(-3, 2, -3);
+        scene.add(dl2);
+
+        const group = new THREE.Group();
+
+        const shell = new THREE.Mesh(
+          new THREE.TorusGeometry(2.0, 0.3, 32, 100),
+          new THREE.MeshStandardMaterial({
+            color: 0x1a1a2e,
+            metalness: 0.7,
+            roughness: 0.25,
+          }),
+        );
+        shell.userData.targetY = 1.8;
+        group.add(shell);
+
+        const core = new THREE.Mesh(
+          new THREE.TorusGeometry(1.75, 0.15, 24, 100),
+          new THREE.MeshStandardMaterial({
+            color: 0xcccccc,
+            metalness: 0.95,
+            roughness: 0.05,
+          }),
+        );
+        core.userData.targetY = 0.6;
+        group.add(core);
+
+        const lensGroup = new THREE.Group();
+        const lensBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.25, 0.25, 0.1, 32),
+          new THREE.MeshPhysicalMaterial({
+            color: 0x4488ff,
+            transmission: 0.7,
+            thickness: 0.3,
+            clearcoat: 1.0,
+            ior: 1.77,
+            metalness: 0,
+            roughness: 0,
+          }),
+        );
+        const lensRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.27, 0.02, 16, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0xc9a87c,
+            metalness: 0.9,
+            roughness: 0.1,
+          }),
+        );
+        lensRing.rotation.x = Math.PI / 2;
+        lensGroup.add(lensBase);
+        lensGroup.add(lensRing);
+        lensGroup.userData.targetY = -0.6;
+        group.add(lensGroup);
+
+        const chamber = new THREE.Mesh(
+          new THREE.BoxGeometry(0.6, 0.2, 0.4),
+          new THREE.MeshStandardMaterial({
+            color: 0x2d2d44,
+            metalness: 0.8,
+            roughness: 0.15,
+          }),
+        );
+        for (let i = 0; i < 5; i++) {
+          const slot = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, 0.22, 0.02),
+            new THREE.MeshBasicMaterial({
+              color: 0xc9a87c,
+              transparent: true,
+              opacity: 0.3,
+            }),
+          );
+          slot.position.x = (i - 2) * 0.12;
+          slot.position.z = 0.21;
+          chamber.add(slot);
+        }
+        chamber.userData.targetY = -1.8;
+        group.add(chamber);
+
+        const lineMat = new THREE.LineBasicMaterial({
+          color: 0xc9a87c,
+          transparent: true,
+          opacity: 0.15,
+        });
+        for (let i = 0; i < 4; i++) {
+          const lineGeom = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-0.5 + i * 0.33, -3, 0),
+            new THREE.Vector3(-0.5 + i * 0.33, 3, 0),
+          ]);
+          const line = new THREE.Line(lineGeom, lineMat);
+          group.add(line);
+        }
+
+        group.rotation.x = 0.3;
+        scene.add(group);
+
+        camera.position.set(0, 0, 7);
+        camera.lookAt(0, 0, 0);
+
+        let explodeProgress = 0;
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let rotVel = { x: 0, y: 0 };
+
+        canvas.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          prevMouse = { x: e.clientX, y: e.clientY };
+        });
+        canvas.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          rotVel.y += (e.clientX - prevMouse.x) * 0.005;
+          rotVel.x += (e.clientY - prevMouse.y) * 0.005;
+          prevMouse = { x: e.clientX, y: e.clientY };
+        });
+        canvas.addEventListener("mouseup", () => (isDragging = false));
+        canvas.addEventListener("mouseleave", () => (isDragging = false));
+
+        canvas.addEventListener("touchstart", (e) => {
+          isDragging = true;
+          prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        });
+        canvas.addEventListener("touchmove", (e) => {
+          if (!isDragging) return;
+          rotVel.y += (e.touches[0].clientX - prevMouse.x) * 0.005;
+          rotVel.x += (e.touches[0].clientY - prevMouse.y) * 0.005;
+          prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        });
+        canvas.addEventListener("touchend", () => (isDragging = false));
+
+        let time = 0;
+        function animate() {
+          requestAnimationFrame(animate);
+          time += 0.01;
+
+          const archSection = document.getElementById("architecture");
+          const rect = archSection.getBoundingClientRect();
+          const viewH = window.innerHeight;
+          const progress = Math.max(
+            0,
+            Math.min(1, 1 - (rect.top + 200) / viewH),
+          );
+          explodeProgress += (progress - explodeProgress) * 0.05;
+
+          group.children.forEach((child) => {
+            if (child.userData.targetY !== undefined) {
+              child.position.y = child.userData.targetY * explodeProgress;
+            }
+          });
+
+          if (!isDragging) {
+            group.rotation.y += 0.003;
+          }
+          group.rotation.y += rotVel.y;
+          group.rotation.x += rotVel.x;
+          rotVel.x *= 0.95;
+          rotVel.y *= 0.95;
+
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        const resizeObs = new ResizeObserver(() => {
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+        resizeObs.observe(canvas.parentElement);
+      }
+
+      // =============================================
+      // NETWORK CANVAS (Shadow Protocol)
+      // =============================================
+      function initNetworkCanvas() {
+        const canvas = document.getElementById("network-canvas");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          50,
+          canvas.clientWidth / canvas.clientHeight,
+          0.1,
+          100,
+        );
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+        });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const nodePositions = [
+          [-3.0, 1.5, 0],
+          [-1.8, 2.2, -0.5],
+          [-0.5, 1.0, 0.3],
+          [0.8, 2.5, -0.2],
+          [2.2, 1.2, 0.5],
+          [3.5, 2.0, -0.3],
+          [-2.5, -0.8, 0.2],
+          [-0.8, -1.5, -0.4],
+          [1.0, -0.5, 0.1],
+          [2.8, -1.0, -0.2],
+          [-1.5, 0.3, 0.6],
+          [1.5, 0.8, -0.5],
+        ];
+
+        const nodes = [];
+        const nodeGroup = new THREE.Group();
+
+        nodePositions.forEach((pos, i) => {
+          const geom = new THREE.SphereGeometry(0.06, 16, 16);
+          const mat = new THREE.MeshBasicMaterial({
+            color: 0xc9a87c,
+            transparent: true,
+            opacity: 0.8,
+          });
+          const mesh = new THREE.Mesh(geom, mat);
+          mesh.position.set(...pos);
+          mesh.userData.basePos = [...pos];
+          mesh.userData.phase = Math.random() * Math.PI * 2;
+          nodeGroup.add(mesh);
+          nodes.push(mesh);
+
+          const glowGeom = new THREE.SphereGeometry(0.15, 16, 16);
+          const glowMat = new THREE.MeshBasicMaterial({
+            color: 0xc9a87c,
+            transparent: true,
+            opacity: 0.1,
+          });
+          const glowMesh = new THREE.Mesh(glowGeom, glowMat);
+          glowMesh.position.set(...pos);
+          nodeGroup.add(glowMesh);
+        });
+
+        const connections = [
+          [0, 1],
+          [1, 2],
+          [2, 4],
+          [3, 4],
+          [4, 5],
+          [0, 6],
+          [6, 7],
+          [7, 8],
+          [8, 9],
+          [2, 10],
+          [10, 11],
+          [11, 4],
+          [1, 10],
+          [7, 10],
+          [8, 11],
+          [3, 5],
+          [6, 10],
+        ];
+
+        const lineMat = new THREE.LineBasicMaterial({
+          color: 0xc9a87c,
+          transparent: true,
+          opacity: 0.12,
+        });
+
+        const lines = [];
+        connections.forEach(([a, b]) => {
+          const geom = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(...nodePositions[a]),
+            new THREE.Vector3(...nodePositions[b]),
+          ]);
+          const line = new THREE.Line(geom, lineMat.clone());
+          line.userData.nodeA = a;
+          line.userData.nodeB = b;
+          nodeGroup.add(line);
+          lines.push(line);
+        });
+
+        scene.add(nodeGroup);
+        camera.position.set(0, 0, 8);
+        camera.lookAt(0, 0.5, 0);
+
+        let pulseIndex = 0;
+        let pulseTimer = 0;
+
+        let time = 0;
+        function animate() {
+          requestAnimationFrame(animate);
+          time += 0.01;
+          pulseTimer += 0.01;
+
+          nodes.forEach((node, i) => {
+            const bp = node.userData.basePos;
+            node.position.x =
+              bp[0] + Math.sin(time + node.userData.phase) * 0.08;
+            node.position.y =
+              bp[1] + Math.cos(time * 0.7 + node.userData.phase) * 0.08;
+          });
+
+          lines.forEach((line) => {
+            const a = nodes[line.userData.nodeA];
+            const b = nodes[line.userData.nodeB];
+            const positions = line.geometry.attributes.position.array;
+            positions[0] = a.position.x;
+            positions[1] = a.position.y;
+            positions[2] = a.position.z;
+            positions[3] = b.position.x;
+            positions[4] = b.position.y;
+            positions[5] = b.position.z;
+            line.geometry.attributes.position.needsUpdate = true;
+          });
+
+          if (pulseTimer > 1.5) {
+            pulseTimer = 0;
+            pulseIndex = Math.floor(Math.random() * lines.length);
+          }
+
+          lines.forEach((line, i) => {
+            if (i === pulseIndex) {
+              line.material.opacity = 0.4 + Math.sin(pulseTimer * 4) * 0.3;
+            } else {
+              line.material.opacity += (0.12 - line.material.opacity) * 0.05;
+            }
+          });
+
+          nodes.forEach((node, i) => {
+            const isActive =
+              connections[pulseIndex] &&
+              (connections[pulseIndex][0] === i ||
+                connections[pulseIndex][1] === i);
+            const targetOp = isActive ? 1.0 : 0.6;
+            node.material.opacity += (targetOp - node.material.opacity) * 0.05;
+          });
+
+          nodeGroup.rotation.y = Math.sin(time * 0.2) * 0.1;
+
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        const resizeObs = new ResizeObserver(() => {
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+        resizeObs.observe(canvas.parentElement);
+      }
+
+      // =============================================
+      // SCROLL REVEAL ANIMATIONS
+      // =============================================
+      function initScrollAnimations() {
+        const reveals = document.querySelectorAll(".reveal");
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+              }
+            });
+          },
+          {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px",
+          },
+        );
+
+        reveals.forEach((el) => observer.observe(el));
+
+        const freezeStat = document.querySelector(".freeze-stat");
+        const freezeObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                animateCounter(freezeStat, 0, 70, 2000);
+                freezeObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.5 },
+        );
+
+        if (freezeStat) freezeObserver.observe(freezeStat);
+      }
+
+      function animateCounter(el, start, end, duration) {
+        const startTime = performance.now();
+        el.style.opacity = "1";
+        el.style.transform = "translateY(0)";
+        el.style.transition = "opacity 0.6s, transform 0.6s";
+
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = easeOutCubic(progress);
+          const current = Math.round(start + (end - start) * eased);
+          el.textContent = current + "%";
+          if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+      }
+
+      // =============================================
+      // NAVIGATION
+      // =============================================
+      function initNav() {
+        const nav = document.getElementById("nav");
+        const hamburger = document.getElementById("hamburger");
+        const mobileMenu = document.getElementById("mobileMenu");
+
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 50) {
+            nav.classList.add("scrolled");
+          } else {
+            nav.classList.remove("scrolled");
+          }
+        });
+
+        hamburger.addEventListener("click", () => {
+          hamburger.classList.toggle("active");
+          mobileMenu.classList.toggle("active");
+        });
+      }
+
+      function closeMobile() {
+        document.getElementById("hamburger").classList.remove("active");
+        document.getElementById("mobileMenu").classList.remove("active");
+      }
+
+      // =============================================
+      // CUSTOM CURSOR
+      // =============================================
+      function initCursor() {
+        if (window.matchMedia("(hover: hover)").matches) {
+          const cursor = document.getElementById("cursor");
+          let mouseX = 0,
+            mouseY = 0;
+          let cursorX = 0,
+            cursorY = 0;
+
+          document.addEventListener("mousemove", (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.classList.add("visible");
+          });
+
+          document.addEventListener("mouseleave", () => {
+            cursor.classList.remove("visible");
+          });
+
+          const hoverTargets = document.querySelectorAll(
+            "a, button, .swatch, canvas, .layer-card, .phase-card",
+          );
+          hoverTargets.forEach((el) => {
+            el.addEventListener("mouseenter", () =>
+              cursor.classList.add("hovering"),
+            );
+            el.addEventListener("mouseleave", () =>
+              cursor.classList.remove("hovering"),
+            );
+          });
+
+          function updateCursor() {
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
+            cursor.style.left = cursorX - 10 + "px";
+            cursor.style.top = cursorY - 10 + "px";
+            requestAnimationFrame(updateCursor);
+          }
+          updateCursor();
+        }
+      }
+
+      // =============================================
+      // WAITLIST FORM
+      // =============================================
+      function handleWaitlist(e) {
+        e.preventDefault();
+        const form = document.getElementById("waitlistForm");
+        const success = document.getElementById("waitlistSuccess");
+        const email = form.querySelector("input").value;
+
+        console.log("Waitlist signup:", email);
+
+        form.style.display = "none";
+        success.style.display = "block";
+      }
+
+      // =============================================
+      // SMOOTH SCROLL
+      // =============================================
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            const target = document.querySelector(this.getAttribute("href"));
+            if (target) {
+              e.preventDefault();
+              target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
