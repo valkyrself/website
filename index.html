@@ -130,7 +130,6 @@
       .nav-logo img {
         height: 50px;
         width: auto;
-        /* This filter colors the purple logo into your gold accent */
         filter: brightness(0) saturate(100%) invert(72%) sepia(28%)
           saturate(497%) hue-rotate(354deg) brightness(91%) contrast(87%);
         transition: filter 0.3s;
@@ -1037,25 +1036,42 @@
       }
 
       /* ============================================
-   RESPONSIVE
+   RESPONSIVE — TABLET (1024px and below)
    ============================================ */
       @media (max-width: 1024px) {
         .architecture-layers {
           grid-template-columns: repeat(2, 1fr);
         }
+
+        .hero-content {
+          gap: 2rem;
+        }
+
+        .shadow-grid {
+          gap: 2.5rem;
+        }
       }
 
+      /* ============================================
+   RESPONSIVE — MOBILE (768px and below)
+   ============================================ */
       @media (max-width: 768px) {
+        /* NAVIGATION */
         .nav {
-          padding: 1rem 1.5rem;
+          padding: 0.875rem 1.25rem;
+        }
+
+        .nav.scrolled {
+          padding: 0.75rem 1.25rem;
         }
 
         .nav-logo img {
-          height: 38px;
+          height: 40px;
         }
 
         .nav-logo {
-          font-size: 1.25rem;
+          font-size: 1.1rem;
+          letter-spacing: 0.3em;
         }
 
         .nav-links {
@@ -1070,73 +1086,339 @@
           display: flex;
         }
 
+        /* SECTIONS */
         .section-padding {
-          padding: 5rem 1.5rem;
+          padding: 4.5rem 1.25rem;
+        }
+
+        /* HERO */
+        .hero {
+          min-height: auto;
         }
 
         .hero-content {
           grid-template-columns: 1fr;
-          padding: 8rem 1.5rem 3rem;
+          padding: 6.5rem 1.25rem 2rem;
           text-align: center;
+          gap: 2rem;
         }
 
         .hero-label {
           justify-content: center;
+          font-size: 0.65rem;
+        }
+
+        .hero-label::before {
+          width: 24px;
+        }
+
+        .hero-text h1 {
+          font-size: clamp(2rem, 8vw, 2.8rem);
+          line-height: 1.2;
         }
 
         .hero-text p {
           margin: 0 auto;
+          font-size: 0.95rem;
         }
 
         .btn-group {
           justify-content: center;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.75rem;
+          margin-top: 1.75rem;
+        }
+
+        .btn {
+          justify-content: center;
+          padding: 1rem 1.5rem;
+          font-size: 0.75rem;
         }
 
         .hero-3d {
-          height: 350px;
+          height: 380px;
           order: -1;
+        }
+
+        .color-swatches {
+          gap: 0.75rem;
+          margin-top: 1rem;
+        }
+
+        .swatch {
+          width: 36px;
+          height: 36px;
+        }
+
+        .scroll-indicator {
+          display: none;
+        }
+
+        /* FREEZE */
+        .freeze {
+          min-height: 70vh;
+        }
+
+        .freeze-content p {
+          font-size: 1rem;
+          padding: 0 0.5rem;
+        }
+
+        /* BRIDGE */
+        .bridge {
+          min-height: 40vh;
+        }
+
+        .bridge h2 {
+          font-size: clamp(1.4rem, 5vw, 1.8rem);
+          padding: 0 1rem;
+        }
+
+        /* ARCHITECTURE */
+        .architecture-header {
+          margin-bottom: 2.5rem;
+        }
+
+        .architecture-viewer {
+          height: 320px;
+          margin: 2rem 0;
         }
 
         .architecture-layers {
           grid-template-columns: 1fr;
+          gap: 1rem;
+          margin-top: 2rem;
         }
 
+        .layer-card {
+          padding: 1.5rem 1.25rem;
+        }
+
+        .layer-number {
+          font-size: 2.2rem;
+          margin-bottom: 0.5rem;
+        }
+
+        /* SHADOW PROTOCOL */
         .shadow-grid {
           grid-template-columns: 1fr;
+          gap: 2rem;
         }
 
         .shadow-visual {
-          height: 350px;
+          height: 320px;
+          order: -1;
+        }
+
+        .shadow-text h2 {
+          text-align: center;
+        }
+
+        .shadow-text p {
+          font-size: 0.95rem;
+        }
+
+        /* PATH */
+        .path-header {
+          margin-bottom: 2.5rem;
         }
 
         .path-timeline {
           grid-template-columns: 1fr;
+          gap: 1.25rem;
+        }
+
+        .phase-card {
+          padding: 2rem 1.5rem;
+        }
+
+        .path-statement {
+          font-size: 1.15rem;
+          padding: 0 0.5rem;
+        }
+
+        /* WAITLIST */
+        .waitlist {
+          min-height: 60vh;
+        }
+
+        .waitlist-content h2 {
+          font-size: clamp(1.6rem, 6vw, 2.2rem);
+        }
+
+        .waitlist-content > p {
+          font-size: 0.95rem;
+          margin-bottom: 1.75rem;
         }
 
         .waitlist-form {
           flex-direction: column;
+          gap: 0.5rem;
+          border: none;
+          background: transparent;
+        }
+
+        .waitlist-form input {
+          border: 1px solid rgba(201, 168, 124, 0.2);
+          padding: 1rem 1.25rem;
+          background: rgba(21, 21, 30, 0.5);
+        }
+
+        .waitlist-form input:focus {
+          border-color: var(--accent);
         }
 
         .waitlist-form button {
           padding: 1rem;
+          width: 100%;
         }
 
-        .architecture-viewer {
-          height: 350px;
+        /* FOOTER */
+        footer {
+          padding: 2rem 1.25rem;
+        }
+
+        /* HIDE CUSTOM CURSOR ON MOBILE (touch devices) */
+        .custom-cursor {
+          display: none !important;
+        }
+
+        /* REDUCE GRAIN OVERLAY ON MOBILE for performance */
+        .grain {
+          opacity: 0.02;
         }
       }
 
+      /* ============================================
+   RESPONSIVE — SMALL PHONES (480px and below)
+   ============================================ */
       @media (max-width: 480px) {
-        h1 {
-          font-size: 2rem;
+        .nav {
+          padding: 0.75rem 1rem;
         }
 
-        .freeze-stat {
-          font-size: 5rem;
+        .nav-logo img {
+          height: 34px;
+        }
+
+        .nav-logo {
+          font-size: 1rem;
+          letter-spacing: 0.25em;
+        }
+
+        .section-padding {
+          padding: 3.5rem 1rem;
+        }
+
+        .hero-content {
+          padding: 5.5rem 1rem 2rem;
+          gap: 1.5rem;
+        }
+
+        .hero-text h1 {
+          font-size: clamp(1.75rem, 8vw, 2.3rem);
+        }
+
+        .hero-text p {
+          font-size: 0.9rem;
         }
 
         .hero-3d {
+          height: 300px;
+        }
+
+        .freeze-stat {
+          font-size: clamp(4rem, 18vw, 6rem);
+        }
+
+        .freeze-stat-label {
+          font-size: clamp(1.5rem, 7vw, 2.2rem);
+          margin-bottom: 1.25rem;
+        }
+
+        .freeze-content p {
+          font-size: 0.9rem;
+        }
+
+        .bridge h2 {
+          font-size: 1.3rem;
+        }
+
+        .architecture-viewer {
           height: 280px;
+        }
+
+        .shadow-visual {
+          height: 280px;
+        }
+
+        .layer-card {
+          padding: 1.25rem 1rem;
+        }
+
+        .layer-card h3 {
+          font-size: 1rem;
+        }
+
+        .layer-card p {
+          font-size: 0.8rem;
+        }
+
+        .phase-card {
+          padding: 1.75rem 1.25rem;
+        }
+
+        .phase-card h3 {
+          font-size: 1.3rem;
+        }
+
+        .waitlist-content h2 {
+          font-size: 1.6rem;
+        }
+
+        .btn {
+          padding: 0.9rem 1.25rem;
+          font-size: 0.7rem;
+        }
+
+        .swatch {
+          width: 32px;
+          height: 32px;
+        }
+
+        .swatch::after {
+          font-size: 0.6rem;
+          bottom: -20px;
+        }
+
+        footer p {
+          font-size: 0.75rem;
+        }
+      }
+
+      /* ============================================
+   RESPONSIVE — TINY PHONES (360px and below)
+   ============================================ */
+      @media (max-width: 360px) {
+        .hero-text h1 {
+          font-size: 1.6rem;
+        }
+
+        .hero-3d {
+          height: 260px;
+        }
+
+        .nav-logo img {
+          height: 30px;
+        }
+
+        .nav-logo {
+          font-size: 0.9rem;
+        }
+
+        .freeze-stat {
+          font-size: 3.5rem;
         }
       }
 
@@ -1522,7 +1804,8 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        const particleCount = 600;
+        // Fewer particles on mobile for performance
+        const particleCount = window.innerWidth < 768 ? 300 : 600;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
 
@@ -1579,9 +1862,6 @@
 
       // =============================================
       // BRACELET 3D MODEL — VALKYR INDUSTRIAL SPEC
-      // Sharp elongated ellipse cross-section
-      // Asymmetric twisted wave w/ blade-like dorsal crest
-      // Recessed status light, sapphire cabochon, Ti clasp
       // =============================================
       let braceletScene, braceletCamera, braceletRenderer, braceletGroup;
       let currentColor = "nocturne";
@@ -1632,29 +1912,23 @@
 
         // ============================================
         // CORE FORM: ASYMMETRIC TWISTED WAVE
-        // Profile = elongated ellipse (4.5mm tall x 3mm wide)
         // ============================================
 
-        const RADIUS = 1.8; // bracelet radius
-        const PROFILE_H = 0.45; // 4.5mm dorsal height
-        const PROFILE_W = 0.16; // 3mm width (minimum)
-        const TWIST_DEG = 18; // 15-20° asymmetric twist
+        const RADIUS = 1.8;
+        const PROFILE_H = 0.45;
+        const PROFILE_W = 0.16;
+        const TWIST_DEG = 18;
         const TUBE_SEGMENTS = 400;
         const RADIAL_SEGMENTS = 48;
 
-        // Build the bracelet as a swept ellipse cross-section along a wave curve
-        // We construct vertices manually for full control of the profile.
-
         const positions = [];
-        const normals = [];
         const indices = [];
         const uvs = [];
 
-        // Center curve — slight asymmetric wave (not a perfect circle)
         function getCenterPoint(t) {
           const angle = t * Math.PI * 2;
-          // Asymmetric wave: subtle organic deviation
-          const waveY = Math.sin(angle * 1) * 0.05 + Math.sin(angle * 2) * 0.03;
+          const waveY =
+            Math.sin(angle * 1) * 0.05 + Math.sin(angle * 2) * 0.03;
           const radiusVar = 1 + Math.sin(angle * 2) * 0.015;
           return new THREE.Vector3(
             Math.cos(angle) * RADIUS * radiusVar,
@@ -1663,7 +1937,6 @@
           );
         }
 
-        // Tangent for orienting the cross-section
         function getTangent(t) {
           const delta = 0.0001;
           const p1 = getCenterPoint(t);
@@ -1671,36 +1944,28 @@
           return p2.sub(p1).normalize();
         }
 
-        // Twist angle progression along the bracelet
         function getTwist(t) {
           const twistRad = (TWIST_DEG * Math.PI) / 180;
           return Math.sin(t * Math.PI * 2) * twistRad;
         }
 
-        // ELONGATED ELLIPSE cross-section (sharp on top, soft on bottom)
         function getCrossSectionPoint(radialT, twist) {
           const a = radialT * Math.PI * 2;
-
-          // Asymmetric ellipse: dorsal (top) is tall + sharp, ventral (bottom) is wide + soft
           let height, width;
 
           if (Math.cos(a) > 0) {
-            // TOP HALF — Dorsal crest, sharp and tall
             const sharpness = Math.pow(Math.cos(a), 2);
             height = PROFILE_H * (0.65 + sharpness * 0.35);
             width = PROFILE_W * (0.85 + sharpness * 0.15);
           } else {
-            // BOTTOM HALF — Ventral (skin contact), narrower and flatter
             const flatness = Math.pow(-Math.cos(a), 1.5);
             height = PROFILE_H * (0.5 - flatness * 0.15);
             width = PROFILE_W * (1 - flatness * 0.3);
           }
 
-          // Sharp peak at top
           const y = Math.cos(a) * height;
           const x = Math.sin(a) * width;
 
-          // Apply twist around tangent
           const cosT = Math.cos(twist);
           const sinT = Math.sin(twist);
           return {
@@ -1708,7 +1973,6 @@
           };
         }
 
-        // Frenet-like frame builder
         const up = new THREE.Vector3(0, 1, 0);
         for (let i = 0; i <= TUBE_SEGMENTS; i++) {
           const t = i / TUBE_SEGMENTS;
@@ -1716,7 +1980,6 @@
           const tangent = getTangent(t);
           const twist = getTwist(t);
 
-          // Build local frame (binormal=outward radial, normal=up-ish)
           const binormal = new THREE.Vector3()
             .crossVectors(tangent, up)
             .normalize();
@@ -1728,7 +1991,6 @@
             const radialT = j / RADIAL_SEGMENTS;
             const cs = getCrossSectionPoint(radialT, twist);
 
-            // Map local 2D into 3D world position
             const vertex = center
               .clone()
               .add(binormal.clone().multiplyScalar(cs.local.x))
@@ -1739,7 +2001,6 @@
           }
         }
 
-        // Build triangle indices
         for (let i = 0; i < TUBE_SEGMENTS; i++) {
           for (let j = 0; j < RADIAL_SEGMENTS; j++) {
             const a = i * (RADIAL_SEGMENTS + 1) + j;
@@ -1760,7 +2021,6 @@
         tubeGeom.setIndex(indices);
         tubeGeom.computeVertexNormals();
 
-        // ---------- CERAMIC MATERIAL (3Y-TZP Zirconia) ----------
         const ceramicMat = new THREE.MeshStandardMaterial({
           color: 0x14131a,
           metalness: 0.05,
@@ -1776,15 +2036,12 @@
 
         // ============================================
         // RECESSED STATUS LIGHT CHANNEL
-        // 0.3mm wide hairline running along dorsal crest
         // ============================================
         const statusLightPoints = [];
         for (let i = 0; i <= 400; i++) {
           const t = i / 400;
           const center = getCenterPoint(t);
           const twist = getTwist(t);
-
-          // Sit ON TOP of dorsal crest, slightly recessed
           const tangent = getTangent(t);
           const binormal = new THREE.Vector3()
             .crossVectors(tangent, up)
@@ -1793,7 +2050,6 @@
             .crossVectors(binormal, tangent)
             .normalize();
 
-          // Position at top of ellipse, slightly inset (recessed)
           const topY = PROFILE_H * 0.95;
           const cosT = Math.cos(twist);
           const sinT = Math.sin(twist);
@@ -1807,7 +2063,10 @@
           statusLightPoints.push(p);
         }
 
-        const statusCurve = new THREE.CatmullRomCurve3(statusLightPoints, true);
+        const statusCurve = new THREE.CatmullRomCurve3(
+          statusLightPoints,
+          true,
+        );
         const statusGeom = new THREE.TubeGeometry(
           statusCurve,
           400,
@@ -1816,7 +2075,7 @@
           true,
         );
         const statusMat = new THREE.MeshBasicMaterial({
-          color: 0xffb35a, // warm amber/gold
+          color: 0xffb35a,
           transparent: true,
           opacity: 0.92,
         });
@@ -1824,7 +2083,6 @@
         statusLight.name = "statusLight";
         braceletGroup.add(statusLight);
 
-        // Status light bloom
         const statusGlowGeom = new THREE.TubeGeometry(
           statusCurve,
           400,
@@ -1842,10 +2100,9 @@
         braceletGroup.add(statusGlow);
 
         // ============================================
-        // SAPPHIRE CABOCHON (4mm) on inner radial wall
-        // Cradles radial artery
+        // SAPPHIRE CABOCHON
         // ============================================
-        const sapphireT = 0.25; // position along bracelet
+        const sapphireT = 0.25;
         const sapphireCenter = getCenterPoint(sapphireT);
         const sapphireTangent = getTangent(sapphireT);
         const sapphireBinormal = new THREE.Vector3()
@@ -1855,13 +2112,11 @@
           .crossVectors(sapphireBinormal, sapphireTangent)
           .normalize();
 
-        // Inner wall = bottom of ellipse, facing inward toward center
         const innerRadialDir = sapphireCenter
           .clone()
           .normalize()
           .multiplyScalar(-1);
 
-        // Sapphire half-sphere (cabochon)
         const sapphireGeom = new THREE.SphereGeometry(
           0.085,
           32,
@@ -1892,7 +2147,6 @@
         sapphire.name = "sapphire";
         braceletGroup.add(sapphire);
 
-        // Sapphire bezel (titanium ring)
         const bezelGeom = new THREE.TorusGeometry(0.09, 0.011, 12, 32);
         const bezelMat = new THREE.MeshStandardMaterial({
           color: 0x4a4a52,
@@ -1906,15 +2160,12 @@
 
         // ============================================
         // ULNAR-SIDE TITANIUM CLASP
-        // Precision-machined grilles (Helmholtz resonator)
         // ============================================
-        const claspT = 0.5; // opposite from sapphire
+        const claspT = 0.5;
         const claspCenter = getCenterPoint(claspT);
-        const claspTangent = getTangent(claspT);
 
         const claspGroup = new THREE.Group();
 
-        // Main clasp body
         const claspBodyGeom = new THREE.BoxGeometry(0.55, 0.42, 0.32);
         const claspBodyMat = new THREE.MeshStandardMaterial({
           color: 0x35353d,
@@ -1925,7 +2176,6 @@
         claspBody.name = "clasp";
         claspGroup.add(claspBody);
 
-        // Acoustic grille slots
         for (let g = 0; g < 4; g++) {
           const grilleGeom = new THREE.BoxGeometry(0.42, 0.025, 0.02);
           const grilleMat = new THREE.MeshBasicMaterial({
@@ -1936,7 +2186,6 @@
           claspGroup.add(grille);
         }
 
-        // Subtle gold seam line on clasp
         const seamGeom = new THREE.BoxGeometry(0.56, 0.005, 0.33);
         const seamMat = new THREE.MeshBasicMaterial({
           color: 0xc9a87c,
@@ -1947,20 +2196,17 @@
         seam.position.set(0, -0.18, 0);
         claspGroup.add(seam);
 
-        // Position clasp at ulnar side
         claspGroup.position.copy(claspCenter);
         claspGroup.lookAt(0, claspCenter.y, 0);
         braceletGroup.add(claspGroup);
 
-        // ============================================
-        // EDITORIAL POSE (tilted, three-quarter view)
-        // ============================================
         braceletGroup.rotation.x = 0.42;
         braceletGroup.rotation.z = -0.12;
         braceletScene.add(braceletGroup);
 
-        // Camera position — pulled back, no clipping
-        braceletCamera.position.set(0, 1.4, 10.5);
+        // Mobile-friendly camera distance — pulls back on small screens
+        const isMobile = window.innerWidth < 768;
+        braceletCamera.position.set(0, 1.4, isMobile ? 10 : 8.5);
         braceletCamera.lookAt(0, 0, 0);
 
         // ---------- INTERACTION ----------
@@ -2013,9 +2259,9 @@
           rotVel.x *= 0.95;
           rotVel.y *= 0.95;
 
-          // Status light slow breathing pulse
           const status = braceletGroup.getObjectByName("statusLight");
-          const statusGlowMesh = braceletGroup.getObjectByName("statusGlow");
+          const statusGlowMesh =
+            braceletGroup.getObjectByName("statusGlow");
           if (status) {
             status.material.opacity = 0.85 + Math.sin(time * 1.4) * 0.12;
           }
@@ -2024,7 +2270,6 @@
               0.15 + Math.sin(time * 1.4) * 0.08;
           }
 
-          // Gentle vertical float
           braceletGroup.position.y = Math.sin(time * 0.55) * 0.04;
 
           braceletRenderer.render(braceletScene, braceletCamera);
@@ -2037,14 +2282,14 @@
           braceletCamera.aspect = w / h;
           braceletCamera.updateProjectionMatrix();
           braceletRenderer.setSize(w, h);
+
+          // Re-adjust camera distance on resize
+          const isMobileNow = window.innerWidth < 768;
+          braceletCamera.position.z = isMobileNow ? 10 : 8.5;
         });
         resizeObserver.observe(canvas.parentElement);
       }
 
-      // ============================================
-      // COLOR SWATCH SWITCHER
-      // Matches the 3 spec colorways
-      // ============================================
       function switchColor(el, colorName) {
         document
           .querySelectorAll(".swatch")
@@ -2052,18 +2297,10 @@
         el.classList.add("active");
         currentColor = colorName;
 
-        // Three industrial colorways from spec
         const colorOptions = {
-          // Obsidian zirconia ceramic + Gunmetal PVD titanium
-          nocturne: {
-            ceramic: 0x14131a,
-            clasp: 0x35353d,
-            statusLight: 0xffb35a,
-          },
-          // Full champagne gold TiN coating (warm liquid metal)
-          dawn: { ceramic: 0x6e5a3d, clasp: 0xc9a87c, statusLight: 0xffd89e },
-          // Alabaster white zirconia + platinum-palladium PVD
-          aura: { ceramic: 0xd8d1c8, clasp: 0x9a8a78, statusLight: 0xf2c8a8 },
+          nocturne: { ceramic: 0x14131a, clasp: 0x35353d, statusLight: 0xffb35a },
+          dawn:     { ceramic: 0x6e5a3d, clasp: 0xc9a87c, statusLight: 0xffd89e },
+          aura:     { ceramic: 0xd8d1c8, clasp: 0x9a8a78, statusLight: 0xf2c8a8 },
         };
 
         const colors = colorOptions[colorName];
@@ -2216,7 +2453,9 @@
         group.rotation.x = 0.3;
         scene.add(group);
 
-        camera.position.set(0, 0, 7);
+        // Mobile-friendly camera distance
+        const isMobile = window.innerWidth < 768;
+        camera.position.set(0, 0, isMobile ? 9 : 7);
         camera.lookAt(0, 0, 0);
 
         let explodeProgress = 0;
@@ -2287,6 +2526,8 @@
           camera.aspect = w / h;
           camera.updateProjectionMatrix();
           renderer.setSize(w, h);
+          const isMobileNow = window.innerWidth < 768;
+          camera.position.z = isMobileNow ? 9 : 7;
         });
         resizeObs.observe(canvas.parentElement);
       }
@@ -2394,7 +2635,10 @@
         });
 
         scene.add(nodeGroup);
-        camera.position.set(0, 0, 8);
+
+        // Mobile-friendly camera distance
+        const isMobile = window.innerWidth < 768;
+        camera.position.set(0, 0, isMobile ? 10 : 8);
         camera.lookAt(0, 0.5, 0);
 
         let pulseIndex = 0;
@@ -2461,6 +2705,8 @@
           camera.aspect = w / h;
           camera.updateProjectionMatrix();
           renderer.setSize(w, h);
+          const isMobileNow = window.innerWidth < 768;
+          camera.position.z = isMobileNow ? 10 : 8;
         });
         resizeObs.observe(canvas.parentElement);
       }
